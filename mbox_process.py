@@ -57,6 +57,8 @@ for idx, message in enumerate(mailbox.mbox(file_name)):
         # make a folder for this email (named after the subject)
         os.mkdir(folder_name)
 
+    print(f"== Msg {idx:04}: from=[{message['from']}], to=[{message['to']}], subject=[{message['subject']}] date=[{message['date']}]")
+
     # add message to summary list for csv
     msg_dict_temp = {
         'Message': idx,
@@ -170,6 +172,7 @@ SUBJECT: {message['subject']}</br>
                     filepath = os.path.join(folder_name, attachment_name)
                     # download attachment and save it
                     open(filepath, "wb").write(part.get_payload(decode=True))
+                    os.symlink("../" + filepath, folder_name + "-" + attachment_name)
 
             # save jpg attachments
             elif content_type == "image/jpeg":
@@ -181,6 +184,7 @@ SUBJECT: {message['subject']}</br>
                     filepath = os.path.join(folder_name, attachment_name)
                     # download attachment and save it
                     open(filepath, "wb").write(part.get_payload(decode=True))
+                    os.symlink("../" + filepath, folder_name + "-" + attachment_name)
 
             # save email attachment
             elif "attachment" in content_disposition:
@@ -192,6 +196,7 @@ SUBJECT: {message['subject']}</br>
                     filepath = os.path.join(folder_name, attachment_name)
                     # download attachment and save it
                     open(filepath, "wb").write(part.get_payload(decode=True))
+                    os.symlink("../" + filepath, folder_name + "-" + attachment_name)
 
         # append final message dict to email summary list
         email_list.append(msg_dict_temp)
