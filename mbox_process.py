@@ -52,14 +52,14 @@ email_list = []
 # iterate over messages
 for idx, message in enumerate(mailbox.mbox(file_name)):
     # create a folder for the message
-    folder_name = f"{dir_name}/msg-{idx + 1}"
+    folder_name = f"{dir_name}/msg-{idx:04}"
     if not os.path.isdir(folder_name):
         # make a folder for this email (named after the subject)
         os.mkdir(folder_name)
 
     # add message to summary list for csv
     msg_dict_temp = {
-        'Message': idx + 1,
+        'Message': idx,
         'From': message['from'],
         'To': message['to'],
         'Date': message['date'],
@@ -103,7 +103,7 @@ SUBJECT: {message['subject']}</br>
             elif content_charset == "us-ascii" or content_charset == "ascii":
                 # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
                 content_charset = "iso-8859-1"
-            print(f"Msg {idx + 1}: get_content_type={content_type}, Content-Disposition={content_disposition}, get_content_charset={part.get_content_charset()}-->{content_charset}")
+            print(f"Msg {idx:04}: get_content_type={content_type}, Content-Disposition={content_disposition}, get_content_charset={part.get_content_charset()}-->{content_charset}")
             payload = part.get_payload(decode=True)
             # https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.get_payload
             # "If the message is a multipart and the decode flag is True, then None is returned."
@@ -114,7 +114,7 @@ SUBJECT: {message['subject']}</br>
             try:
                 body = payload.decode(encoding=content_charset)
             except Exception as e:
-                print(f"Exception in {idx + 1}: {body}")
+                print(f"Exception in {idx:04}: {body}")
                 # Fail on exceptions, but could alternative skip and go to the next part
                 sys.exit(1)
                 # continue
@@ -126,7 +126,7 @@ SUBJECT: {message['subject']}</br>
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx + 1}.txt"
+                filename = f"msg-{idx:04}.txt"
                 filepath = os.path.join(folder_name, filename)
                 # check if file exists to append
                 if os.path.exists(filepath):
@@ -143,7 +143,7 @@ SUBJECT: {message['subject']}</br>
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx + 1}.html"
+                filename = f"msg-{idx:04}.html"
                 filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "a+").write(full_message_html)
@@ -155,7 +155,7 @@ SUBJECT: {message['subject']}</br>
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx + 1}-mxd.html"
+                filename = f"msg-{idx:04}-mxd.html"
                 filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "w").write(full_message_mixed)
@@ -209,7 +209,7 @@ SUBJECT: {message['subject']}</br>
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx + 1}.txt"
+                filename = f"msg-{idx:04}.txt"
                 filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "a+").write(full_message_text)
@@ -225,12 +225,12 @@ SUBJECT: {message['subject']}</br>
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx + 1}.html"
+                filename = f"msg-{idx:04}.html"
                 filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "a+").write(full_message_text)
         else:
-            print(f"MESSAGE SKIPPED {idx + 1}")
+            print(f"MESSAGE SKIPPED {idx:04}")
 
 # write email summary to csv
 with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
