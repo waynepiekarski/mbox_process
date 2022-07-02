@@ -255,8 +255,7 @@ SUBJECT: {message['subject']}</br>
         email_list.append(msg_dict_temp)
 
 
-# write email summary to csv
-with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
+with open(f'{dir_name}/summary.csv', 'w') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=csv_headers)
     writer.writeheader()
     writer.writerows(email_list)
