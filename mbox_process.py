@@ -36,6 +36,12 @@ def safe_decode(payload, charset):
         test_charset = charset.lower().replace("-","")
         if test_charset == "utf8":
             alt_charset = "iso-8859-1"
+        # Chinese emails seem to indicate one charset but don't decode, so try an alternative
+        elif test_charset == "gb2312" or test_charset == "big5":
+            alt_charset = "iso-8859-1"
+        # Japanese charsets can fail to decode
+        elif test_charset == "iso2022jp":
+            alt_charset = "iso-8859-1"
         else:
             sys.exit(f"No alternative charset for {charset}/{test_charset}: Exception decoding {idx:04}: {type(ude).__name__}=[{ude}]")
         try:
@@ -56,9 +62,16 @@ def safe_charset(part):
     elif content_charset == "us-ascii" or content_charset == "ascii":
         # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
         content_charset = "iso-8859-1"
-    elif content_charset == "unknown-8bit":
+    elif content_charset == "unknown-8bit" or content_charset == "x-unknown":
         # Some emails use "unknown-8bit" but not sure why, lets try UTF-8 and if it fails it will try ISO-8859-1
         content_charset = "utf-8"
+    elif content_charset == "utf-8,iso-8859-1":
+        # Some emails include two charsets which is not valid, so fix it up
+        content_charset = "utf-8"
+    elif content_charset == "windows-874":
+        # Could be a Thai encoding, which is -11 and not -1
+        content_charset = "iso-8859-11"
+
     return content_charset
 
 
