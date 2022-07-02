@@ -99,9 +99,6 @@ args = my_parser.parse_args()
 ### PREPARE FOR FILE PROCESSING ###
 ###################################
 
-# set the message index
-msg_num = 1
-
 # get filename from user
 file_name = args.file_name
 
@@ -127,7 +124,10 @@ email_list = []
 #########################
 
 # iterate over messages
+count = 0
 for idx, message in enumerate(mailbox.mbox(file_name)):
+    count = count + 1
+
     # create a folder for the message
     folder_name = f"{dir_name}/msg-{idx:04}"
     if not os.path.isdir(folder_name):
@@ -259,3 +259,7 @@ with open(f'{dir_name}/summary.csv', 'w') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=csv_headers)
     writer.writeheader()
     writer.writerows(email_list)
+
+
+if count == 0:
+    sys.exit(f"Failed to find any emails in mailbox {file_name}")
