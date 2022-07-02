@@ -12,8 +12,7 @@ def write_output(folder_name, in_file_name, write_data, symlink=False):
     dupstr = ""
     dup = 0
     while True:
-        filepath = os.path.join(folder_name, dupstr + file_name)
-        if os.path.exists(filepath):
+        if os.path.exists(os.path.join(folder_name, dupstr + file_name)):
             dup = dup + 1
             dupstr = str(dup) + "-"
         else:
@@ -21,11 +20,11 @@ def write_output(folder_name, in_file_name, write_data, symlink=False):
         if dup == 100:
             sys.exit(f"FATAL: Reached 100 duplicates for [{folder_name}] attachment [{attachment_name}]")
     if symlink:
-        os.symlink("../" + filepath, folder_name + "-" + dupstr + file_name)
+        os.symlink(os.path.join("..", f"msg-{idx:04}", dupstr + file_name), f"{dir_name}/attachments/msg-{idx:04}-{dupstr}{file_name}")
     # Need to convert any strings to UTF-8 so they can be written in "wb" mode
     if isinstance(write_data, str):
         write_data = write_data.encode('utf-8')
-    open(filepath, "wb").write(write_data)
+    open(os.path.join(folder_name, dupstr + file_name), "wb").write(write_data)
 
 
 def safe_decode(payload, charset):
@@ -107,10 +106,15 @@ file_name = args.file_name
 # get directory to store messages in from user
 dir_name = args.dir_name
 
-# check if the directory exists
-if not os.path.isdir(dir_name):
-    # make a folder for this email (named after the subject)
-    os.mkdir(dir_name)
+# if the output directory exists then we should exit
+if os.path.isdir(dir_name):
+    sys.exit(f"Output directory {dir_name} already exists")
+if dir_name.endswith("/"):
+    sys.exit(f"Output directory {dir_name} ends with /, provide only the directory name")
+
+# Create output directory as well as subdirectories for symlink farms
+os.mkdir(dir_name)
+os.mkdir(os.path.join(dir_name, "attachments"))
 
 # create a list to store information on each message to be written to csv
 csv_headers = ['Message', 'From', 'To', 'Date', 'Subject', 'Attachment', 'PNG', 'JPG']
