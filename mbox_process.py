@@ -8,6 +8,8 @@ import sys
 def write_output(folder_name, in_file_name, write_data, symlink=False):
     # Remove bad characters from the attachment file name
     file_name = ''.join([s for s in in_file_name if s in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,-_ ~`!@#$%^&+=<>'])
+    # Some email filters would replace a file extension like .doc with DEFANGED-doc so fix these up
+    file_name = file_name.replace("DEFANGED-", ".")
 
     dupstr = ""
     dup = 0
