@@ -146,8 +146,12 @@ SUBJECT: {message['subject']}</br>
 </br>
     '''
 
-    # iterate through each message
+    # Messages can be either multi-part or single, so make an array so we can use the same code for both cases
     if message.is_multipart():
+        message_walk = message.walk()
+    else:
+        message_walk = [ message ]
+    if True:
         # iterate over the message parts
         for part in message.walk():
             # get email content
@@ -228,27 +232,6 @@ SUBJECT: {message['subject']}</br>
         # append final message dict to email summary list
         email_list.append(msg_dict_temp)
 
-    else:
-        if message.get_content_type() == "text/plain":
-            for part in message.walk():
-                payload = part.get_payload(decode=True)
-                body = safe_decode(payload, safe_charset(part))
-
-                full_message_text = full_message + f"{body}"
-
-                filename = f"msg-{idx:04}.txt"
-                write_output(folder_name, filename, full_message_text)
-        elif message.get_content_type() == "text/html":
-            for part in message.walk():
-                payload = part.get_payload(decode=True)
-                body = safe_decode(payload, safe_charset(part))
-
-                full_message_text = html_header + f"CONTENT: \n{body}"
-
-                filename = f"msg-{idx:04}.html"
-                write_output(folder_name, filename, full_message_text)
-        else:
-            sys.exit(f"MESSAGE SKIPPED {idx:04} {message.get_content_type()}")
 
 # write email summary to csv
 with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
