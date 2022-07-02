@@ -18,8 +18,8 @@ def write_output(folder_name, in_file_name, write_data, symlink=False):
             dupstr = str(dup) + "-"
         else:
             break
-        if dup == 10:
-            sys.exit(f"FATAL: Reached 10 duplicates for [{folder_name}] attachment [{attachment_name}]")
+        if dup == 100:
+            sys.exit(f"FATAL: Reached 100 duplicates for [{folder_name}] attachment [{attachment_name}]")
     if symlink:
         os.symlink("../" + filepath, folder_name + "-" + dupstr + file_name)
     # Need to convert any strings to UTF-8 so they can be written in "wb" mode
