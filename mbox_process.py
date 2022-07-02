@@ -56,6 +56,9 @@ def safe_charset(part):
     elif content_charset == "us-ascii" or content_charset == "ascii":
         # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
         content_charset = "iso-8859-1"
+    elif content_charset == "unknown-8bit":
+        # Some emails use "unknown-8bit" but not sure why, lets try UTF-8 and if it fails it will try ISO-8859-1
+        content_charset = "utf-8"
     return content_charset
 
 
