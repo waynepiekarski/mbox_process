@@ -60,7 +60,16 @@ def safe_charset(part):
     if content_charset is None:
         # Python needs a charset, so pick a suitable default if none provided
         content_charset = "iso-8859-1"
-    elif content_charset == "us-ascii" or content_charset == "ascii":
+
+    if content_charset.startswith('"'):
+        # If charset is quoted, then we should remove the leading quote
+        content_charset = content_charset[1:]
+
+    # Some charsets end in a quote or newline, so split on those too and throw away everything else
+    content_charset = content_charset.split('\n')[0]
+    content_charset = content_charset.split('"')[0]
+
+    if content_charset == "us-ascii" or content_charset == "ascii":
         # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
         content_charset = "iso-8859-1"
     elif content_charset == "unknown-8bit" or content_charset == "x-unknown":
@@ -180,7 +189,7 @@ SUBJECT: {message['subject']}</br>
             content_type = part.get_content_type()
             content_disposition = str(part.get("Content-Disposition")).replace('\n',' ')
             content_charset = safe_charset(part)
-            print(f"Msg {idx:04}: get_content_type={content_type}, Content-Disposition={content_disposition}, get_content_charset={part.get_content_charset()}-->{content_charset}")
+            print(f"Msg {idx:04}: get_content_type=[{content_type}], Content-Disposition=[{content_disposition}], get_content_charset=[{part.get_content_charset()}]-->[{content_charset}]")
             payload = part.get_payload(decode=True)
             # https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.get_payload
             # "If the message is a multipart and the decode flag is True, then None is returned."
