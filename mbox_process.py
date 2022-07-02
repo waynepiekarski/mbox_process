@@ -31,8 +31,20 @@ def write_output(folder_name, in_file_name, write_data, symlink=False):
 def safe_decode(payload, charset):
     try:
         body = payload.decode(encoding=charset)
+    except UnicodeDecodeError as ude:
+        # Some emails are indicated as utf-8 but are actually a different charset, so lets try an alternative to see if it can be made to work
+        test_charset = charset.lower().replace("-","")
+        if test_charset == "utf8":
+            alt_charset = "iso-8859-1"
+        else:
+            sys.exit(f"No alternative charset for {charset}/{test_charset}: Exception decoding {idx:04}: {type(ude).__name__}=[{ude}]")
+        try:
+            print(f"Msg {idx:04}: Using alternative charset {alt_charset} due to exception using {charset}, specified encoding was probably wrong")
+            body = payload.decode(encoding=alt_charset)
+        except:
+            sys.exit(f"Alternative exception decoding {idx:04}: {type(e).__name__}=[{e}]")
     except Exception as e:
-        sys.exit(f"Exception decoding {idx:04}: [{e}]")
+        sys.exit(f"Exception decoding {idx:04}: {type(e).__name__}=[{e}]")
     return body
 
 
