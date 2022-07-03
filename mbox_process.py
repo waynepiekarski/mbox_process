@@ -34,7 +34,7 @@ def safe_decode(payload, charset):
         body = payload.decode(encoding=charset)
     except UnicodeDecodeError as ude:
         # Some emails are indicated as utf-8 but are actually a different charset, so lets try an alternative to see if it can be made to work
-        test_charset = charset.lower().replace("-","")
+        test_charset = charset.lower().replace("-","").replace("_","")
         if test_charset == "utf8":
             alt_charset = "iso-8859-1"
         # Chinese emails seem to indicate one charset but don't decode, so try an alternative
@@ -42,6 +42,17 @@ def safe_decode(payload, charset):
             alt_charset = "iso-8859-1"
         # Japanese charsets can fail to decode
         elif test_charset == "iso2022jp":
+            alt_charset = "iso-8859-1"
+        # Most of these emails are not actually using this encoding, so just try a default and it usually works
+        elif test_charset == "windows1252":
+            alt_charset = "iso-8859-1"
+        elif test_charset == "windows1258":
+            alt_charset = "iso-8859-1"
+        elif test_charset == "ascii":
+            alt_charset = "iso-8859-1"
+        elif test_charset == "ansix3.41968": # Handle ansi_x3.41968 failures
+            alt_charset = "iso-8859-1"
+        elif test_charset == "unicode11utf7": # Handle unicode-1-1-utf-7 failures
             alt_charset = "iso-8859-1"
         else:
             sys.exit(f"No alternative charset for {charset}/{test_charset}: Exception decoding {idx:04}: {type(ude).__name__}=[{ude}]")
@@ -58,7 +69,7 @@ def safe_decode(payload, charset):
 def safe_charset(part):
     content_charset = part.get_content_charset()
     if content_charset is None:
-        # Python needs a charset, so pick a suitable default if none provided
+        # Need a string for all the future checks, so pick a suitable default if none provided
         content_charset = "iso-8859-1"
 
     if content_charset.startswith('"'):
@@ -69,10 +80,17 @@ def safe_charset(part):
     content_charset = content_charset.split('\n')[0]
     content_charset = content_charset.split('"')[0]
 
+    if content_charset.startswith('3d'):
+        # Somehow =3d is a quoting mechanism and gets into the charset string, so remove any leading 3d string
+        content_charset = content_charset[2:]
+
+    if content_charset == "":
+        # Python needs a charset, so pick a suitable default if none provided
+        content_charset = "iso-8859-1"
     if content_charset == "us-ascii" or content_charset == "ascii":
         # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
         content_charset = "iso-8859-1"
-    elif content_charset == "unknown-8bit" or content_charset == "x-unknown":
+    elif content_charset == "unknown-8bit" or content_charset == "x-unknown" or content_charset == "x-user-defined":
         # Some emails use "unknown-8bit" but not sure why, lets try UTF-8 and if it fails it will try ISO-8859-1
         content_charset = "utf-8"
     elif content_charset == "utf-8,iso-8859-1":
@@ -81,6 +99,15 @@ def safe_charset(part):
     elif content_charset == "windows-874":
         # Could be a Thai encoding, which is -11 and not -1
         content_charset = "iso-8859-11"
+    elif content_charset == "646":
+        # No idea how this got into an email, but fix it
+        content_charset = "iso-8859-1"
+    elif content_charset == "iso-6353-6":
+        # Some unknown charset in an email
+        content_charset = "iso-8859-1"
+    elif content_charset == "default_charset":
+        # Pick a default since nothing was provided
+        content_charset = "iso-8859-1"
 
     return content_charset
 
